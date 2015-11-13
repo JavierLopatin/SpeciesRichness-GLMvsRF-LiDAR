@@ -1,69 +1,125 @@
-## R-Script - Bootstrap test for sigfificative differences
-## author: Klara Dolos
-## mail: klara.dolos@kit.de
+## R-Script - Plot results
+## author: Javier Lopatin
+## mail:javierlopatin@gmail.com
 ## Manuscript: Comparing Generalized Linear Models and random forest to model vascular plant species richness using LiDAR data in a natural forest in central Chile
 ## last changes: 12/11/2015
 
-library(randomForest)
-library(boot)
-library(MASS)
+##############################################
+### Importance of variables. Figure 2  ###
+##############################################
 
-##### set working directory
-setwd("direction/to/your/folder")
+library(lattice)
 
+# load the table with the variable importances (gini index and hierarchical partitioning for RF and GLM respectively)
+# the table must have 4 columns: 1. variable names, 2. the importance, 3. the layer (total, tree, shrub or herb), and 4. the model (GLM or RF)
+imp<- read.table("importance.csv", header=T, sep=",", dec=".")
+str(imp)
 
-#### Set the bootstrap test for sigfificative differences
-to_boot_all <- function(data, i){
-  reponse_names <- c("Tolat_richness", "Shrub_richness", "Tree_richness", "Herb_richness")
-  diff_r2 <- numeric()
-  diff_bias <- numeric()
-  diff_rmse <- numeric()
-  for ( i in 1:length(reponse_names)){
-    data$response <- data[,reponse_names[i]]
-    # best GLM model
-    m1 <- glm(response ~ DTM_1_mean + slope_1m_std + norm_H_1_mean, data=data, family=negative.binomial(theta=1 , link="log"))    
-    # best RF model
-    m2 <- randomForest(response ~ DTM_1_mean + slope_1m_std + norm_H_1_mean + norm_H_1_mean + Asp_1m + TWI_1m + TWI_1m + one_mean + one_std + homogeneity_1 + contrast_1 + dissimilarity_1 + entropy_1 + second_moment_1, data=data,  ntrees=500, na.action= na.roughfix,importance=F, do.trace=100, mtry=7)
-    
-    ### compute the differences between GLM and RF
-    ### r2 of GLM should be large. So, if r2(m1) - r2(m2) is positive, if GLM is better.
-    diff_r2[i] <- cor(data$response, predict(m1))^2 - cor(data$response, predict(m2))^2
-    
-    ### RMSE of GLM should be small. So, if rmse(m2) - rmse(m1) is positive, if GLM is better. Caution, I change the order!
-    diff_rmse[i] <- sqrt(mean((data$response-predict(m2, type="response"))^2)) - sqrt(mean((data$response-predict(m1, type="response"))^2))
-    
-    ### Bias of GLM should be small. So, if bias(m2) - bias(m1) is positive, if GLM is better. Caution, I change the order!
-    diff_bias[i] <- (1 - lm(data$response ~ predict(m2, type="response") -1)$coef)- (1 - lm(data$response ~ predict(m1, type="response") -1)$coef)  
-    }
-    # store the differences 
-   c(diff_r2, diff_rmse, diff_bias)
-}
+pdf(file = "Figures/Fig .pdf", width=10, height=5)
+dotplot(factor(Variables, levels = rev(sort(unique(Variables))), ordered = T)~Importance | Layer, data=imp, cex=1.3, xlab="Importance (%)", groups=Model, layout = c(4,1),
+        main="",index.cond=list(c(3,4,2,1)), box.width=2, origin=0, par.settings = simpleTheme(cex=1.5, pch=c(16,17), col=c("blue", "red")), auto.key=list(space="right", columns=1)) 
+dev.off()
 
 
-### Execute ####
+###################################################
+### Distribution of model accuracies. Figure 3  ###
+###################################################
 
-# load data
-dat <- read.table("Richness_model.csv", header=T, sep=",", dec=".")   ### Dataset: Javier
-head(dat)
+library(beanplot)
 
-# apply boot test and prepare the results
-boot.result <- boot(data=dat, statistic=to_boot_all, R=500,  stype = "i")  ### Takes about 2-4 min
-boot.result
-boot.values <- boot.result$t
-colnames(boot.values) <-  paste(rep(c("Tolat_richness", "Shrub_richness", "Tree_richness", "Herb_richness"), 3), rep(c("r2", "RMSE", "bias"), each=4), sep="_")
-par(mfrow=c(3,4), mar=c(2,3,3,1))
-for(i in 1:ncol(boot.values)){
-  hist(boot.values[,i], main=colnames(boot.values)[i], col="grey", border="white", xlab="", ylab="")
-  abline(v=quantile(boot.values[,i], probs=c(0.05, 0.95)), col=c("blue", "green"))
-  abline(v=0, col=c("black"))
-  box()
-}
-### The black "zero-line" needs to be left of the blue "alpha-line". The green line is just the upper quantile.
+# RF VS GLM
+pdf(file = "Figures/RF-NB beanplot.pdf", width=10, height=4)
+par(mfrow=c(1,3),lend = 1, mai = c(0.8, 0.6, 0.5, 0.1))
+beanplot( unlist(r2.rf), unlist(r2.nb),  unlist(r2.rf.A), unlist(r2.nb.A),  unlist(r2.rf.AR), unlist(r2.nb.AR),  unlist(r2.rf.H), unlist(r2.nb.H), 
+          col = list("black", "gray"), border = NA, innerboerder=NA, beanlines="median", ll = 0, side = "b", log="",
+          main = "Squared Pearson's correlation coefficient", names=c("Total", "Tree", "Shrub", "Herb"), ylab = expression(r^2), ylim = c(0,1), yaxs = "i",cex.lab=1.3, cex.axis=1.3, las=1)
+beanplot( unlist(Nrmse.rf), unlist(Nrmse.nb),  unlist(Nrmse.rf.A), unlist(Nrmse.nb.A),  unlist(Nrmse.rf.AR), unlist(Nrmse.nb.AR),  unlist(Nrmse.rf.H), unlist(Nrmse.nb.H),
+          col = list("black", "gray"), border = NA, innerboerder=NA, beanlines="median", ll = 0, side="b",log="" , ylim=c(10,40),
+          main = "Normalized root mean square error", names=c("Total", "Tree", "Shrub", "Herb"), ylab = "nRMSE (%)", yaxs = "i", cex.lab=1.3, cex.axis=1.3, las=1)
+beanplot( unlist(bias.rf), unlist(bias.nb),  unlist(bias.rf.A), unlist(bias.nb.A),  unlist(bias.rf.AR), unlist(bias.nb.AR),  unlist(bias.rf.H), unlist(bias.nb.H), 
+          col = list("black", "gray"), border = NA, innerboerder=NA, beanlines="median", ll = 0, side = "b", log="" ,
+          main = "Bias", names=c("Total", "Tree", "Shrub", "Herb"), ylab = "Bias", yaxs = "i",cex.lab=1.3, cex.axis=1.3, las=1)
+legend("topleft", legend=c("RF", "GLM"), fill=c("black", "gray"), bty="n", cex=1.3)
+dev.off()
 
-### Range of the values
-apply(boot.values, 2, function(x) range(x))
 
-### Lower quantile needs to be larger than zero.
-test.result <- (t(apply(boot.values, 2, function(x) quantile(x, probs = c(0.01, 0.05)) > 0))); test.result
-# save results
-write.table(test.result, "bootstrap_test_result.txt")
+####################################################################
+### Scatter plots of observed versus predicted values. Figure 4  ###
+####################################################################
+
+par(oma = c(4.5, 1, 1, 1))
+plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n", xlab="", ylab="")
+par(mfrow=c(2,2),lend = 1, mai = c(0.5, 0.5, 0.5, 0.1))
+##Total Richness
+par(mar=c(5, 5, 3, 3))
+Mytitle = "Total richness fitted model"
+Pred1<- subset(rf, Obs < 32)$Pred
+Obs1<-  subset(rf, Obs < 32)$Obs
+Pred2<- subset(nb, Obs < 32)$Pred
+Obs2<-  subset(nb, Obs < 32)$Obs
+MyXlab <- expression(paste("Observed (N° spp)"))
+MyYlab <- expression(paste( "Predicted (N° spp)"))
+plot((Obs1 - 0.25), Pred1, col="black", xlim=c(0,40), ylim=c(0,40), xlab = MyXlab, ylab = MyYlab, pch=16, pty="s", cex=0.5, cex.lab=1.1, cex.axis=1.1, main = Mytitle, las= 1)
+points((Obs2 + 0.25), Pred2, pch=17,col="gray", cex=0.5)
+abline(0, 1, lty=1, lwd=2)
+# RF
+lm1 = lm(Pred1 ~ Obs1-1)
+abline(lm1, lty=2, lwd=2)
+# GLM
+lm2 = lm(Pred2 ~ Obs2-1)
+abline(lm2, lty=3, lwd=2)
+
+## Tree 
+par(mar=c(5, 5, 3, 3))
+Mytitle = "Tree richness fitted model"
+Pred1<- subset(rf.A, Obs < 16)$Pred
+Obs1<-  subset(rf.A, Obs < 16)$Obs
+Pred2<- subset(nb.A, Obs < 16)$Pred
+Obs2<-  subset(nb.A, Obs < 16)$Obs
+plot((Obs1 - 0.25), Pred1, xlim=c(0,20), ylim=c(0,20), xlab = MyXlab, ylab = MyYlab, pch=16, pty="s", cex=0.8, cex.lab=1.1, cex.axis=1.1, main = Mytitle, las= 1)
+points((Obs2 + 0.25), Pred2, pch=17, col="grey", cex=0.8)
+abline(0, 1, lty=1, lwd=2)
+# RF
+abline(lm1, lty=2, lwd=2)
+# GLM
+lm2 = lm(Pred2 ~ Obs2-1)
+abline(lm2, lty=3, lwd=2)
+
+## Shrub
+par(mar=c(5, 5, 3, 3))
+Mytitle = "Shrub richness fitted model"
+Pred1<- rf.AR$Pred
+Obs1<-  rf.AR$Obs
+Pred2<- nb.AR$Pred
+Obs2<-  nb.AR$Obs
+plot((Obs1 - 0.25), Pred1, xlim=c(0,25), ylim=c(0,25), xlab = MyXlab, ylab = MyYlab, pch=16, pty="s", cex=0.8, cex.lab=1.1, cex.axis=1.1, main = Mytitle, las= 1)
+points((Obs2 + 0.25), Pred2, pch=17, col="grey", cex=0.8)
+abline(0, 1, lty=1, lwd=2)
+# RF
+lm1 = lm(Pred1 ~ Obs1-1)
+abline(lm1, lty=2, lwd=2)
+# GLM
+lm2 = lm(Pred2 ~ Obs2-1)
+abline(lm2, lty=3, lwd=2)
+
+## Herb
+par(mar=c(5, 5, 3, 3))
+Mytitle = "Herb richness fitted model"
+Pred1<- rf.H$Pred
+Obs1<-  rf.H$Obs
+Pred2<- nb.H$Pred
+Obs2<-  nb.H$Obs
+plot((Obs1 - 0.25), Pred1, xlim=c(0,20), ylim=c(0,20), xlab = MyXlab, ylab = MyYlab, pch=16, pty="s", cex=0.8, cex.lab=1.1, cex.axis=1.1, main = Mytitle, las= 1)
+points((Obs2 + 0.25), Pred2, pch=17, col="grey", cex=0.8)
+abline(0, 1, lty=1, lwd=2)
+# RF
+lm1 = lm(Pred1 ~ Obs1-1)
+abline(lm1, lty=2, lwd=2)
+# GLM
+lm2 = lm(Pred2 ~ Obs2-1)
+abline(lm2, lty=3, lwd=2)
+
+par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = T)
+plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
+legend(-0.08, -0.80,inset = 0 , xpd = T,  text.width=0.3,legend=c("RF","", "GLM",""), col=c("black","black","black", "gray"), pch=c(NA,16,NA,17), lty=c(2,NA,3,NA), lwd=c(2.5,2.5), horiz = F, bty = "n", cex=0.8) 
+
