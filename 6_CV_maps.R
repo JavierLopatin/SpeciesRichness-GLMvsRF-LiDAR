@@ -15,12 +15,12 @@ setwd("direction/to/your/folder")
 
 
 # Load data 
-# "dat" have the observations and predictors at plot level, while "map" have the predictors in a systematic grid of 30m x 30m
-# Both datas must have the same column, names and order between each other
+# "dat" contains the observations and predictions at plot level, while "map" contains the predictors in a systematic grid of 30m x 30m
+# Both data must have the same column, names and order 
 dat <- read.table("Richness_model.csv", header=T, sep=",", dec=".") 
 map <- read.table("Maps.csv", header=T, sep=",", dec=".")
 
-# Bootstraping in all the map
+# Bootstraping the map
 N = length(dat[,1]) # N° observations
 B = 500  # N° of bootraps iterations
 
@@ -74,7 +74,7 @@ for(i in 1:B){
 # save values
 save.image("CV_map.RData")
 
-# Storage the bootstrap predictions per pixel prediction
+# Store the bootstrap predictions 
 write.table(ID.map,      file="ID_map.txt",      sep="\t", row.names = F)
 write.table(Pred.map,    file="Pred_map.txt",    sep="\t", row.names = F)
 write.table(Pred.map.A,  file="Pred_map.A.txt",  sep="\t", row.names = F)
@@ -154,7 +154,7 @@ r <- raster(extent(poly_herb))
 res(r)=30
 poly_herb <- rasterize(poly_herb, field="CV", r)
 
-# Make the predictors in raster format
+# Convert the predictors to raster format
 Pred_ras<- merge(polyg, map, by.x="ID", by.y="ID")
 r <- raster(extent(Pred_ras))
 res(r)=30
@@ -219,9 +219,4 @@ plot(poly_herb, legend.only=TRUE, col=color(40), legend.shrink=1, legend.width=1
 dev.off()
 
 save.image("CV_map.RData")
-
-
-
-
-
 
