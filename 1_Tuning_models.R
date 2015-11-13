@@ -235,3 +235,4 @@ abline(0,1)
 
 
 ### Conclusion: GLM (neg.binom with theta=1, log-link) and just the linear terms for the selected variables is best model for total richness. You should check if the variables make sense and how they are correlated amn each otehr or to other variables which may be more reasonable.
+
