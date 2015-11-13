@@ -1,4 +1,4 @@
-## R-Script - Tuning the models
+## R-Script - Model tuning
 ## author: Javier Lopatin & Klara Dolos
 ## mail: javierlopatin@gmail.com; klara.dolos@kit.de
 ## Manuscript: Comparing Generalized Linear Models and random forest to model vascular plant species richness using LiDAR data in a natural forest in central Chile
@@ -14,7 +14,6 @@ library(caret)
 setwd("direction/to/your/folder")
 
 ### Load data ####
-### Data with all interesing response variables and predictors. I do not know what the abbreviations mean... I yust play around...
 dat <- read.table("Richness_model.csv", header=T, sep=",", dec=".")   
 head(dat)
 summary(dat)
@@ -23,10 +22,10 @@ summary(dat)
 ### Tuning the Random Forest models using the caret package ###
 ###############################################################
 
-# set the predictors
+# select the predictors
 predictors <- dat[,6:17]
 
-# define parameter tuning methods
+# define parameter tuning method
 fitControl <- trainControl(method = "repeatedcv", number = 5, repeats = 5, returnResamp ="all")
 
 # tuning for total richness
@@ -49,7 +48,7 @@ tuning_herb
 ### Tuning the GLMs ###
 #######################
 
-### Explore data using the total richness ###
+### Explore data using the total richness dataset ###
 x11(width=10, height=10)
 par(mfrow=c(3,3))
 plot(dat$Total_richness ~ dat$one_mean)
@@ -189,7 +188,7 @@ sort(colSums(best10[,1:12]), decreasing=T)
 ### Best model is the one with all variables. However, the singly parameters are not significant. Better way of model selection is thus to drop non-significant patameters.
 summary(models[[as.numeric(rownames(best10))[1]]])
 
-### Seems that the function "step" does a good job in this case. Maybe we yust use it.
+### Seems that the function "step" does a good job in this case. 
 m <- step(models[[as.numeric(rownames(best10))[1]]])
 summary(m)
 
@@ -234,5 +233,4 @@ plot(predict(ms, type="response") ~ dat$Total_richness)
 abline(0,1)
 
 
-### Conclusion: GLM (neg.binom with theta=1, log-link) and just the linear terms for the selected variables is best model for total richness. You should check if the variables make sense and how they are correlated amn each otehr or to other variables which may be more reasonable.
-
+### Conclusion: GLM (neg.binom with theta=1, log-link) and just the linear terms for the selected variables is best model for total richness. 
