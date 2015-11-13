@@ -20,10 +20,9 @@ summary(dat)
 
 
 ###############################
-## Bootstrap selection samples
+## Prepare Bootstrap samples
 ###############################
 
-# select bootstrapped subset of samples 
 set.seed(550)
 
 # create empty lists in which subsets can be stored
@@ -231,7 +230,7 @@ for(i in 1:B){
   # run the GLM using Negative Binomial family. Three variables were selected using previous tuning procidere 
   GLM_total <- glm(Total_richness ~  one_mean + DTM_1_mean + slope_1m_std, data=TRAIN,  family=negative.binomial(theta=1 , link="log"))
   
-  # predict richness values using the 
+  # predict richness values 
   Pred<-stats:::predict(GLM_total, newdata=VALIDATION, type="response")
   
   # store the model accuracies
