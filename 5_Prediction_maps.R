@@ -4,13 +4,13 @@
 ## Manuscript: Comparing Generalized Linear Models and random forest to model vascular plant species richness using LiDAR data in a natural forest in central Chile
 ## last changes: 12/11/2015
 
-
+# set working directory
 setwd("direction/to/your/folder")
 
 
 # Load data 
 # data1 have the observations and predictors at plot level, while data2 have the predictors in a systematic grid of 30m x 30m
-# Both datas must have the same column, names and order between each other
+# Both data must have the same column, names and order 
 data1 <- read.table("Richness_model.csv", header=T, sep=",", dec=".") 
 attach(data1)
 data2<-read.csv("Maps.csv", header=T, sep=",", dec=".")
@@ -25,7 +25,7 @@ library(GISTools)
 # load grid shapefile
 polyg<-readOGR(".","Grid_30m_c")
 
-# Make the predictors in raster format
+# Convert predictors to raster format
 Pred_ras<- merge(polyg, data2, by.x="ID", by.y="ID")
 r <- raster(extent(Pred_ras))
 res(r)=30
@@ -53,7 +53,7 @@ tr.dat <- list(x=data1$one_mean, y=data1$DTM_1_mean)  # two dimensions
 tri<-tri.mesh(tr.dat$x - 2, tr.dat$y - 2, duplicate="remove") 
 a <- !is.na(predictors[["one_mean"]][])
 
-# aplly mask to the total richness distribution map
+# apply mask to the total richness distribution map
 preds_T[a][!in.convex.hull(tri, x=predictors[["one_mean"]][a], y=predictors[["DTM_1_mean"]][a])] <- NA
 plot(preds_T)
 
@@ -111,3 +111,4 @@ plot(preds_H, main="Herb richness",  col=color(40), zlim=c(0,25),axes=F, legend=
 north.arrow(xb=326500,yb=6113800,len=80,lab="North")
 map.scale(xc=324500,yc=6110300,len=2000,units="km", ndivs=2, scol = "black", sfcol =c("black", "white"))
 dev.off()
+
