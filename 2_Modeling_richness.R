@@ -14,7 +14,7 @@ library(randomForest)
 setwd("direction/to/your/folder")
 
 #### Load data
-dat <- read.table("Richness_model.csv", header=T, sep=",", dec=".")   ### Dataset: Javier
+dat <- read.table("Richness_model.csv", header=T, sep=",", dec=".") 
 attach(dat)
 summary(dat)
 
