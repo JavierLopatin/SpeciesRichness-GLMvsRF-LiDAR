@@ -13,14 +13,13 @@ library(GISTools)
 # set working directory
 setwd("direction/to/your/folder")
 
-
 # Load data 
 # "dat" contains the observations and predictions at plot level, while "map" contains the predictors in a systematic grid of 30m x 30m
 # Both data must have the same column, names and order 
 dat <- read.table("Richness_model.csv", header=T, sep=",", dec=".") 
 map <- read.table("Maps.csv", header=T, sep=",", dec=".")
 
-# Bootstraping the map
+# Bootstrapping the map
 N = length(dat[,1]) # N° observations
 B = 500  # N° of bootraps iterations
 
@@ -38,7 +37,6 @@ for(i in 1:B){
   Pred<-stats:::predict(ms, newdata=map, type="response")
   Pred.map[[i]]<-Pred
 }
-
 
 # Tree
 Pred.map.A<-list()
@@ -70,7 +68,6 @@ for(i in 1:B){
   Pred.map.H[[i]]<-Pred
 }
 
-
 # save values
 save.image("CV_map.RData")
 
@@ -94,7 +91,6 @@ data_Tree  <- t(data_Tree)
 data_Shrub <- t(data_Shrub)
 data_Herb  <- t(data_Herb)
 
-
 # CV values
 cv_Total <- list()
 cv_Tree  <- list()
@@ -102,7 +98,6 @@ cv_shrub <- list()
 cv_Herb  <- list()
 
 for (i in 1:length(data_Total[1,])){
-  
   cv1 <- cv(data_Total[,i])
   cv2 <- cv(data_Tree[,i])
   cv3 <- cv(data_Shrub[,i])
@@ -112,7 +107,6 @@ for (i in 1:length(data_Total[1,])){
   cv_Tree[[i]]  <- cv2
   cv_shrub[[i]] <- cv3
   cv_Herb[[i]]  <- cv4
-  
 }
 
 save.image("CV_map.RData")
@@ -165,7 +159,6 @@ STD_Slope <- rasterize(Pred_ras, field="slope_1m_std", r)
 predictors<-stack(Mean_DTM, Mean_DCM, STD_Slope)  
 names(predictors) <- c("DTM_1_mean", "one_mean", "slope_1m_std") # Use the same names than in the data
 plot(predictors)
-
 
 # Apply the convexhull mask
 tr.dat <- list(x=dat$one_mean, y=dat$DTM_1_mean)  # two dimensions
