@@ -83,7 +83,7 @@ pdf(file = "Figures/Fig 5 B&W.pdf", width=8, height=8)
 # color version
 color <- colorRampPalette(c("blue", "cornflowerblue", "lightblue", "yellow", "darkgoldenrod1", "orange", "red"))
 # B&W version
-color <- colorRampPalette(c("gray100", "gray50", "gray10"))
+#color <- colorRampPalette(c("gray100", "gray50", "gray10"))
 
 par(mfrow=c(2,2), mai = c(0, 0, 0, 0))
 # Total
@@ -105,7 +105,7 @@ plot(preds_AR,  main="Shrub richness", col=color(40), zlim=c(0,25), axes=F, lege
 north.arrow(xb=326500,yb=6113800,len=80,lab="North")
 map.scale(xc=324500,yc=6110300,len=2000,units="km", ndivs=2, scol = "black", sfcol =c("black", "white"))
 # Herb
-pasr(mar=c(0.3, 0, 1, 0))
+par(mar=c(0.3, 0, 1, 0))
 plot(preds_H, main="Herb richness",  col=color(40), zlim=c(0,25),axes=F, legend=T, legend.shrink=1, legend.width=1,
      axis.args=list(at=seq(0, 25, 5), labels=seq(0, 25, 5), cex.axis=0.8))
 north.arrow(xb=326500,yb=6113800,len=80,lab="North")

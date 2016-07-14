@@ -173,7 +173,7 @@ poly_shrub <- mask(poly_shrub, poly_total)
 poly_herb  <- mask(poly_herb, poly_total)
 
 ##################################
-### plot the CV maps. Figure 6 ###
+### Plot the CV maps. Figure 6 ###
 ##################################
 
 pdf(file = "Figures/fig 6 B&W.pdf", width=8, height=8)

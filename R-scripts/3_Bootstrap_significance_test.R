@@ -21,7 +21,7 @@ to_boot_all <- function(data, i){
   for ( i in 1:length(reponse_names)){
     data$response <- data[,reponse_names[i]]
     # best GLM model
-    m1 <- glm(response ~ DTM_1_mean + slope_1m_std + norm_H_1_mean, data=data, family=negative.binomial(theta=1 , link="log"))    
+    m1 <- glm(response ~ DTM_1_mean + slope_1m_std + one_mean, data=data, family=negative.binomial(theta=1 , link="log"))    
     # best RF model
     m2 <- randomForest(response ~ DTM_1_mean + slope_1m_std + norm_H_1_mean + norm_H_1_mean + Asp_1m + TWI_1m + TWI_1m + one_mean + one_std + homogeneity_1 + contrast_1 + dissimilarity_1 + entropy_1 + second_moment_1, data=data,  ntrees=500, na.action= na.roughfix,importance=F, do.trace=100, mtry=7)
     
@@ -42,15 +42,11 @@ to_boot_all <- function(data, i){
 
 ### Execute ####
 
-# load data
-dat <- read.table("Richness_model.csv", header=T, sep=",", dec=".")   ### Dataset: Javier
-head(dat)
-
 # apply boot test and prepare the results
 boot.result <- boot(data=dat, statistic=to_boot_all, R=500,  stype = "i")  ### Takes about 2-4 min
 boot.result
 boot.values <- boot.result$t
-colnames(boot.values) <-  paste(rep(c("Tolat_richness", "Shrub_richness", "Tree_richness", "Herb_richness"), 3), rep(c("r2", "RMSE", "bias"), each=4), sep="_")
+colnames(boot.values) <-  paste(rep(c("Total_richness", "Shrub_richness", "Tree_richness", "Herb_richness"), 3), rep(c("r2", "RMSE", "bias"), each=4), sep="_")
 par(mfrow=c(3,4), mar=c(2,3,3,1))
 for(i in 1:ncol(boot.values)){
   hist(boot.values[,i], main=colnames(boot.values)[i], col="grey", border="white", xlab="", ylab="")
