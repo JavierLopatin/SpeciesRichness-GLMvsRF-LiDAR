@@ -20,6 +20,7 @@ library(MASS)
 library(raster)
 library(rgdal)
 library(alphahull)
+library(tripack)
 library(GISTools)
         
 # load grid shapefile
