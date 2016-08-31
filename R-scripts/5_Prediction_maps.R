@@ -7,9 +7,11 @@
 # set working directory
 setwd("direction/to/your/folder")
 
+# data2 should have the exactly same header that data1, 
 
 # Load data 
-# data1 have the observations and predictors at plot level, while data2 have the predictors in a systematic grid of 30m x 30m
+# data1 have the observations and predictors at plot level (same data that you use to build your predictive model).
+# data2 have the exactly same header that data1 (same variables in the same order) obtained of a systematic grid of 30m x 30m.
 # Both data must have the same column, names and order 
 data1 <- read.table("Richness_model.csv", header=T, sep=",", dec=".") 
 attach(data1)
