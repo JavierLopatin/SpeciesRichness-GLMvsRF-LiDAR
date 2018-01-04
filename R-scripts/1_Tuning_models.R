@@ -157,7 +157,7 @@ formulas$expl.dev <- unlist(lapply(models, function(x) (summary(x)$null.deviance
 
 formulas$o.dev <- order(formulas$expl.dev, decreasing=T)
 formulas$o.aic <- order(formulas$AIC, decreasing=T)
-formulas[o.dev,c("form", "AIC", "expl.dev")][1:10,]
+formulas[formulas$o.dev, c("form", "AIC", "expl.dev")][1:10,]
 
 plot(formulas$AIC[formulas$o.aic])
 plot(formulas$AIC[formulas$o.aic][1:100])
@@ -177,7 +177,6 @@ sort(colSums(best100[,1:12]), decreasing=T)
 best10 <- formulas[formulas$AIC < (max(formulas$AIC)+10) & formulas$o.dev < 10,]
 nrow(best10)
 plot(best10$expl.dev, best10$AIC)
-
 
 best10 <- best10[order(best10$AIC, decreasing=T),]
 best10
